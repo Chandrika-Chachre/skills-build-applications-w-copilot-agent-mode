@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { Activity, LeaderboardEntry, Team, User, Workout } from './models.js';
-import { connectToDatabase } from './database.js';
+import { connectToDatabase } from './config/database.js';
 
 const app = express();
 const port = 8000;

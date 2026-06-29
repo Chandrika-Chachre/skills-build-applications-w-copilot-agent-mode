@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { Activity, LeaderboardEntry, Team, User, Workout } from '../models.js';
-import { mongoUri } from '../database.js';
+import { mongoUri } from '../config/database.js';
 
 console.log('Seed the octofit_db database with test data');
 
