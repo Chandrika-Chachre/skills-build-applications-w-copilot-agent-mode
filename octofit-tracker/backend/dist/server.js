@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const mongoose_1 = __importDefault(require("mongoose"));
 const models_js_1 = require("./models.js");
+const database_js_1 = require("./database.js");
 const app = (0, express_1.default)();
 const port = 8000;
 const codespaceName = process.env.CODESPACE_NAME;
@@ -35,12 +35,10 @@ app.use('/api/teams', createCollectionRouter('teams', models_js_1.Team));
 app.use('/api/activities', createCollectionRouter('activities', models_js_1.Activity));
 app.use('/api/leaderboard', createCollectionRouter('leaderboard', models_js_1.LeaderboardEntry));
 app.use('/api/workouts', createCollectionRouter('workouts', models_js_1.Workout));
-const connectToDatabase = async () => {
-    const mongoUri = 'mongodb://127.0.0.1:27017/octofit_db';
-    await mongoose_1.default.connect(mongoUri);
+(0, database_js_1.connectToDatabase)()
+    .then(() => {
     console.log('MongoDB connected');
-};
-connectToDatabase()
+})
     .then(() => {
     app.listen(port, () => {
         console.log(`Backend listening on port ${port}`);

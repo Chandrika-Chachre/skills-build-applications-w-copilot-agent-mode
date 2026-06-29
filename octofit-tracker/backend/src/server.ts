@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import { Activity, LeaderboardEntry, Team, User, Workout } from './models.js';
+import { connectToDatabase } from './database.js';
 
 const app = express();
 const port = 8000;
@@ -39,13 +40,10 @@ app.use('/api/activities', createCollectionRouter('activities', Activity));
 app.use('/api/leaderboard', createCollectionRouter('leaderboard', LeaderboardEntry));
 app.use('/api/workouts', createCollectionRouter('workouts', Workout));
 
-const connectToDatabase = async () => {
-  const mongoUri = 'mongodb://127.0.0.1:27017/octofit_db';
-  await mongoose.connect(mongoUri);
-  console.log('MongoDB connected');
-};
-
 connectToDatabase()
+  .then(() => {
+    console.log('MongoDB connected');
+  })
   .then(() => {
     app.listen(port, () => {
       console.log(`Backend listening on port ${port}`);

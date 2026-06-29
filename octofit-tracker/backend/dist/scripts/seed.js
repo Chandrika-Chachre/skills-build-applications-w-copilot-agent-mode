@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const models_js_1 = require("../models.js");
+const database_js_1 = require("../database.js");
 console.log('Seed the octofit_db database with test data');
 const seedData = async () => {
-    const uri = 'mongodb://127.0.0.1:27017/octofit_db';
-    await mongoose_1.default.connect(uri);
+    await mongoose_1.default.connect(database_js_1.mongoUri);
     console.log('Connected to MongoDB for seeding');
     await Promise.all([
         models_js_1.User.deleteMany({}),
