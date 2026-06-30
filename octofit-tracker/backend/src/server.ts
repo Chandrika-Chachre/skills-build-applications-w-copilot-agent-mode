@@ -5,11 +5,12 @@ import { Activity, LeaderboardEntry, Team, User, Workout } from './models.js';
 import { connectToDatabase } from './config/database.js';
 
 const app = express();
-const port = 8000;
+const host = process.env.HOST || '0.0.0.0';
+const port = Number(process.env.PORT || 8000);
 const codespaceName = process.env.CODESPACE_NAME;
 const apiBaseUrl = codespaceName
   ? `https://${codespaceName}-8000.app.github.dev`
-  : 'http://localhost:8000';
+  : `http://localhost:${port}`;
 
 const createCollectionRouter = (resourceName: string, model: mongoose.Model<any>) => {
   const router = express.Router();
@@ -45,8 +46,8 @@ connectToDatabase()
     console.log('MongoDB connected');
   })
   .then(() => {
-    app.listen(port, () => {
-      console.log(`Backend listening on port ${port}`);
+    app.listen(port, host, () => {
+      console.log(`Backend listening on ${host}:${port}`);
       console.log(`API base URL: ${apiBaseUrl}`);
     });
   })

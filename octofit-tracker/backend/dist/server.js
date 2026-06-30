@@ -6,13 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const models_js_1 = require("./models.js");
-const database_js_1 = require("./database.js");
+const database_js_1 = require("./config/database.js");
 const app = (0, express_1.default)();
-const port = 8000;
+const host = process.env.HOST || '0.0.0.0';
+const port = Number(process.env.PORT || 8000);
 const codespaceName = process.env.CODESPACE_NAME;
 const apiBaseUrl = codespaceName
     ? `https://${codespaceName}-8000.app.github.dev`
-    : 'http://localhost:8000';
+    : `http://localhost:${port}`;
 const createCollectionRouter = (resourceName, model) => {
     const router = express_1.default.Router();
     router.get('/', async (_req, res) => {
@@ -40,8 +41,8 @@ app.use('/api/workouts', createCollectionRouter('workouts', models_js_1.Workout)
     console.log('MongoDB connected');
 })
     .then(() => {
-    app.listen(port, () => {
-        console.log(`Backend listening on port ${port}`);
+    app.listen(port, host, () => {
+        console.log(`Backend listening on ${host}:${port}`);
         console.log(`API base URL: ${apiBaseUrl}`);
     });
 })
