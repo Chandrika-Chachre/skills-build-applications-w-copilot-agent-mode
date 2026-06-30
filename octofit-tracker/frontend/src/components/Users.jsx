@@ -1,42 +1,63 @@
 import { useEffect, useState } from 'react';
-import { buildApiUrl, normalizeCollectionResponse } from '../utils/api.js';
+import { fetchResource } from '../utils/api.js';
 
-export default function Users() {
+function Users() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch(buildApiUrl('/api/users/'));
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+    let isMounted = true;
+
+    fetchResource('users')
+      .then((items) => {
+        if (isMounted) {
+          setUsers(items);
         }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err.message);
+        }
+      });
 
-        const data = await response.json();
-        setUsers(normalizeCollectionResponse(data));
-      } catch (err) {
-        setError(err.message || 'Unable to load users.');
-      }
+    return () => {
+      isMounted = false;
     };
-
-    fetchUsers();
   }, []);
 
   return (
-    <section className="card">
-      <h2>Users</h2>
-      <p className="text-muted">Community members and profile details.</p>
-      {error ? <div className="alert alert-danger">{error}</div> : null}
-      <ul className="list-group">
+    <section>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="h4 mb-1">Users</h2>
+          <p className="text-muted mb-0">Browse the community members from the backend API.</p>
+        </div>
+        <span className="badge text-bg-primary">API</span>
+      </div>
+
+      {error ? <div className="alert alert-warning">{error}</div> : null}
+
+      {!error && users.length === 0 ? (
+        <div className="alert alert-info">No users found yet.</div>
+      ) : null}
+
+      <div className="row row-cols-1 row-cols-lg-2 g-3">
         {users.map((user) => (
-          <li key={user._id || user.email} className="list-group-item">
-            <strong>{user.name}</strong>
-            <div className="small text-muted">{user.email}</div>
-            <div className="small">Goal: {user.fitnessGoal || 'Not specified'}</div>
-          </li>
+          <div className="col" key={user._id || user.email}>
+            <div className="card h-100 shadow-sm">
+              <div className="card-body">
+                <h3 className="h5">{user.name}</h3>
+                <p className="mb-2"><strong>Email:</strong> {user.email}</p>
+                <p className="mb-2"><strong>Age:</strong> {user.age ?? '—'}</p>
+                <p className="mb-2"><strong>Goal:</strong> {user.fitnessGoal ?? '—'}</p>
+                <p className="mb-0"><strong>City:</strong> {user.city ?? '—'}</p>
+              </div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }
+
+export default Users;

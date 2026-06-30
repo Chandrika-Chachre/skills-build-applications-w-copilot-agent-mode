@@ -1,44 +1,59 @@
 import { useEffect, useState } from 'react';
-import { buildApiUrl, normalizeCollectionResponse } from '../utils/api.js';
+import { fetchResource } from '../utils/api.js';
 
-export default function Leaderboard() {
+function Leaderboard() {
   const [entries, setEntries] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const response = await fetch(buildApiUrl('/api/leaderboard/'));
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+    let isMounted = true;
+
+    fetchResource('leaderboard')
+      .then((items) => {
+        if (isMounted) {
+          setEntries(items);
         }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err.message);
+        }
+      });
 
-        const data = await response.json();
-        setEntries(normalizeCollectionResponse(data));
-      } catch (err) {
-        setError(err.message || 'Unable to load leaderboard.');
-      }
+    return () => {
+      isMounted = false;
     };
-
-    fetchLeaderboard();
   }, []);
 
   return (
-    <section className="card">
-      <h2>Leaderboard</h2>
-      <p className="text-muted">Top performers and current streaks.</p>
-      {error ? <div className="alert alert-danger">{error}</div> : null}
-      <ul className="list-group">
-        {entries.map((entry) => (
-          <li key={entry._id || entry.name} className="list-group-item d-flex justify-content-between align-items-center">
-            <span>
-              <strong>{entry.name}</strong>
-              <div className="small text-muted">Streak: {entry.streakDays ?? 0} days</div>
-            </span>
-            <span className="badge bg-primary rounded-pill">{entry.totalScore ?? 0}</span>
-          </li>
+    <section>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="h4 mb-1">Leaderboard</h2>
+          <p className="text-muted mb-0">Your competitive standings at a glance.</p>
+        </div>
+        <span className="badge text-bg-success">API</span>
+      </div>
+
+      {error ? <div className="alert alert-warning">{error}</div> : null}
+
+      {!error && entries.length === 0 ? (
+        <div className="alert alert-info">No leaderboard entries available yet.</div>
+      ) : null}
+
+      <div className="list-group">
+        {entries.map((entry, index) => (
+          <div className="list-group-item d-flex justify-content-between align-items-start" key={entry._id || `${entry.name}-${index}`}>
+            <div>
+              <h3 className="h6 mb-1">#{index + 1} {entry.name}</h3>
+              <p className="mb-0 text-muted">Score: {entry.totalScore ?? '—'} • Streak: {entry.streakDays ?? '—'} days</p>
+            </div>
+            <span className="badge text-bg-dark">{entry.totalScore ?? 0}</span>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }
+
+export default Leaderboard;

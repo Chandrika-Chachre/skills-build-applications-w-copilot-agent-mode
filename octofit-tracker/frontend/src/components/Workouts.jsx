@@ -1,42 +1,63 @@
 import { useEffect, useState } from 'react';
-import { buildApiUrl, normalizeCollectionResponse } from '../utils/api.js';
+import { fetchResource } from '../utils/api.js';
 
-export default function Workouts() {
+function Workouts() {
   const [workouts, setWorkouts] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchWorkouts = async () => {
-      try {
-        const response = await fetch(buildApiUrl('/api/workouts/'));
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+    let isMounted = true;
+
+    fetchResource('workouts')
+      .then((items) => {
+        if (isMounted) {
+          setWorkouts(items);
         }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err.message);
+        }
+      });
 
-        const data = await response.json();
-        setWorkouts(normalizeCollectionResponse(data));
-      } catch (err) {
-        setError(err.message || 'Unable to load workouts.');
-      }
+    return () => {
+      isMounted = false;
     };
-
-    fetchWorkouts();
   }, []);
 
   return (
-    <section className="card">
-      <h2>Workouts</h2>
-      <p className="text-muted">Suggested sessions tailored to your goals.</p>
-      {error ? <div className="alert alert-danger">{error}</div> : null}
-      <ul className="list-group">
+    <section>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="h4 mb-1">Workouts</h2>
+          <p className="text-muted mb-0">Suggested routines and training ideas.</p>
+        </div>
+        <span className="badge text-bg-warning">API</span>
+      </div>
+
+      {error ? <div className="alert alert-warning">{error}</div> : null}
+
+      {!error && workouts.length === 0 ? (
+        <div className="alert alert-info">No workouts available yet.</div>
+      ) : null}
+
+      <div className="row row-cols-1 row-cols-lg-2 g-3">
         {workouts.map((workout) => (
-          <li key={workout._id || workout.name} className="list-group-item">
-            <strong>{workout.name}</strong>
-            <div className="small">{workout.category || 'General'}</div>
-            <div className="small text-muted">{workout.description || 'A focused session for your fitness plan.'}</div>
-          </li>
+          <div className="col" key={workout._id || workout.name}>
+            <div className="card h-100 shadow-sm">
+              <div className="card-body">
+                <h3 className="h5">{workout.name}</h3>
+                <p className="mb-2"><strong>Category:</strong> {workout.category ?? '—'}</p>
+                <p className="mb-2"><strong>Duration:</strong> {workout.durationMinutes ?? '—'} min</p>
+                <p className="mb-2"><strong>Difficulty:</strong> {workout.difficulty ?? '—'}</p>
+                <p className="mb-0"><strong>Focus:</strong> {workout.focusArea ?? '—'}</p>
+              </div>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }
+
+export default Workouts;

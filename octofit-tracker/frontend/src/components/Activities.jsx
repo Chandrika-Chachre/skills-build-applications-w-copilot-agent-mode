@@ -1,45 +1,63 @@
 import { useEffect, useState } from 'react';
-import { buildApiUrl, normalizeCollectionResponse } from '../utils/api.js';
+import { fetchResource } from '../utils/api.js';
 
-export default function Activities() {
+function Activities() {
   const [activities, setActivities] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchActivities = async () => {
-      try {
-        const response = await fetch(buildApiUrl('/api/activities/'));
-        if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+    let isMounted = true;
+
+    fetchResource('activities')
+      .then((items) => {
+        if (isMounted) {
+          setActivities(items);
         }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setError(err.message);
+        }
+      });
 
-        const data = await response.json();
-        setActivities(normalizeCollectionResponse(data));
-      } catch (err) {
-        setError(err.message || 'Unable to load activities.');
-      }
+    return () => {
+      isMounted = false;
     };
-
-    fetchActivities();
   }, []);
 
   return (
-    <section className="card">
-      <h2>Activities</h2>
-      <p className="text-muted">Recent workouts and activity logs.</p>
-      {error ? <div className="alert alert-danger">{error}</div> : null}
-      <ul className="list-group">
+    <section>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="h4 mb-1">Activities</h2>
+          <p className="text-muted mb-0">Recent movement and training entries.</p>
+        </div>
+        <span className="badge text-bg-primary">API</span>
+      </div>
+
+      {error ? <div className="alert alert-warning">{error}</div> : null}
+
+      {!error && activities.length === 0 ? (
+        <div className="alert alert-info">No activities found yet.</div>
+      ) : null}
+
+      <div className="row row-cols-1 row-cols-lg-2 g-3">
         {activities.map((activity) => (
-          <li key={activity._id || activity.completedAt} className="list-group-item">
-            <strong>{activity.type}</strong>
-            <div className="small">{activity.userName}</div>
-            <div className="small text-muted">
-              {activity.distanceKm ? `${activity.distanceKm} km` : ''}{' '}
-              {activity.durationMinutes ? `${activity.durationMinutes} min` : ''}
+          <div className="col" key={activity._id || `${activity.userName}-${activity.type}`}>
+            <div className="card h-100 shadow-sm">
+              <div className="card-body">
+                <h3 className="h5">{activity.type}</h3>
+                <p className="mb-2"><strong>User:</strong> {activity.userName}</p>
+                <p className="mb-2"><strong>Distance:</strong> {activity.distanceKm ?? '—'} km</p>
+                <p className="mb-2"><strong>Duration:</strong> {activity.durationMinutes ?? '—'} min</p>
+                <p className="mb-0"><strong>Calories:</strong> {activity.caloriesBurned ?? '—'}</p>
+              </div>
             </div>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }
+
+export default Activities;

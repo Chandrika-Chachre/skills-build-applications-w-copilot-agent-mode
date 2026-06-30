@@ -1,13 +1,13 @@
 import { NavLink, Route, Routes } from 'react-router-dom';
-import Activities from './components/Activities';
-import Leaderboard from './components/Leaderboard';
-import Teams from './components/Teams';
-import Users from './components/Users';
-import Workouts from './components/Workouts';
+import Activities from './components/Activities.jsx';
+import Leaderboard from './components/Leaderboard.jsx';
+import Teams from './components/Teams.jsx';
+import Users from './components/Users.jsx';
+import Workouts from './components/Workouts.jsx';
 import './App.css';
 
-const navigation = [
-  { to: '/', label: 'Users' },
+const navItems = [
+  { to: '/', label: 'Users', end: true },
   { to: '/activities', label: 'Activities' },
   { to: '/teams', label: 'Teams' },
   { to: '/leaderboard', label: 'Leaderboard' },
@@ -15,40 +15,36 @@ const navigation = [
 ];
 
 function App() {
-  const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim();
-  const apiBaseUrl = codespaceName
-    ? `https://${codespaceName}-8000.app.github.dev/api`
-    : 'http://localhost:8000/api';
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">Octofit Tracker</p>
-          <h1>Multi-tier fitness experience</h1>
-          <p className="lead">
-            Explore users, activities, teams, workouts, and the leaderboard from the Node.js API.
-          </p>
-          <div className="api-banner">
-            <strong>API Base:</strong> {apiBaseUrl}
-          </div>
-          <p className="text-muted mt-2">
-            {codespaceName
-              ? 'Codespaces mode is active.'
-              : 'Define VITE_CODESPACE_NAME in .env.local to use the public Codespaces API URL.'}
-          </p>
+    <div className="container py-4">
+      <header className="mb-4">
+        <h1 className="display-6 mb-2">Octofit Tracker</h1>
+        <p className="text-muted mb-3">
+          Multi-tier fitness tracking dashboard powered by the Node.js API.
+        </p>
+        <div className="alert alert-secondary small mb-3">
+          <strong>Configuration:</strong> define <code>VITE_CODESPACE_NAME</code> in <code>.env.local</code> for Codespaces. Without it, the app falls back to the local API.
         </div>
-
-        <nav className="nav-links" aria-label="Primary navigation">
-          {navigation.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+        <nav className="nav nav-pills flex-wrap gap-2">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
               {item.label}
             </NavLink>
           ))}
         </nav>
+        <p className="text-muted small mt-3 mb-0">
+          API base: {codespaceName ? `https://${codespaceName}-8000.app.github.dev/api` : '/api'}
+        </p>
       </header>
 
-      <main className="container py-4">
+      <main>
         <Routes>
           <Route path="/" element={<Users />} />
           <Route path="/activities" element={<Activities />} />

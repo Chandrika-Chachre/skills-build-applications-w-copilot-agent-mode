@@ -1,30 +1,33 @@
-const getCodespaceName = () => import.meta.env.VITE_CODESPACE_NAME?.trim();
-
-export const buildApiUrl = (path = '/') => {
-  const codespaceName = getCodespaceName();
+const getApiBaseUrl = () => {
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
 
   if (codespaceName) {
-    return `https://${codespaceName}-8000.app.github.dev${path}`;
+    return `https://${codespaceName}-8000.app.github.dev/api`;
   }
 
-  return `http://localhost:8000${path}`;
+  return '/api';
 };
 
-export const normalizeCollectionResponse = (data) => {
-  if (Array.isArray(data)) {
-    return data;
+export const fetchResource = async (resourceName) => {
+  const baseUrl = getApiBaseUrl();
+  const response = await fetch(`${baseUrl}/${resourceName}/`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to load ${resourceName}`);
   }
 
-  if (Array.isArray(data?.items)) {
-    return data.items;
+  const payload = await response.json();
+
+  if (Array.isArray(payload)) {
+    return payload;
   }
 
-  if (Array.isArray(data?.results)) {
-    return data.results;
+  if (payload && Array.isArray(payload.items)) {
+    return payload.items;
   }
 
-  if (Array.isArray(data?.data)) {
-    return data.data;
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
   }
 
   return [];
