@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../utils/api.js';
 
 function Activities() {
   const [activities, setActivities] = useState([]);
   const [error, setError] = useState('');
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  const activitiesApiUrl = codespaceName
+    ? `https://${codespaceName}-8000.app.github.dev/api/activities`
+    : '/api/activities';
 
   useEffect(() => {
     let isMounted = true;
 
-    fetchResource('activities')
-      .then((items) => {
+    fetch(activitiesApiUrl)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load activities');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload)
+          ? payload
+          : payload?.items || payload?.results || [];
+
         if (isMounted) {
           setActivities(items);
         }

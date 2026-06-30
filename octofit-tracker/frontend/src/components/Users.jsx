@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../utils/api.js';
 
 function Users() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  const usersApiUrl = codespaceName
+    ? `https://${codespaceName}-8000.app.github.dev/api/users`
+    : '/api/users';
 
   useEffect(() => {
     let isMounted = true;
 
-    fetchResource('users')
-      .then((items) => {
+    fetch(usersApiUrl)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load users');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload)
+          ? payload
+          : payload?.items || payload?.results || [];
+
         if (isMounted) {
           setUsers(items);
         }

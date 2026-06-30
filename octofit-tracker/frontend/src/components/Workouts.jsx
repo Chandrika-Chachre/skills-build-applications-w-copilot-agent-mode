@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../utils/api.js';
 
 function Workouts() {
   const [workouts, setWorkouts] = useState([]);
   const [error, setError] = useState('');
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  const workoutsApiUrl = codespaceName
+    ? `https://${codespaceName}-8000.app.github.dev/api/workouts`
+    : '/api/workouts';
 
   useEffect(() => {
     let isMounted = true;
 
-    fetchResource('workouts')
-      .then((items) => {
+    fetch(workoutsApiUrl)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load workouts');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload)
+          ? payload
+          : payload?.items || payload?.results || [];
+
         if (isMounted) {
           setWorkouts(items);
         }

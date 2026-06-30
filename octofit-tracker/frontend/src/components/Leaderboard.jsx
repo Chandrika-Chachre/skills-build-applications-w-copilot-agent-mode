@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../utils/api.js';
 
 function Leaderboard() {
   const [entries, setEntries] = useState([]);
   const [error, setError] = useState('');
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  const leaderboardApiUrl = codespaceName
+    ? `https://${codespaceName}-8000.app.github.dev/api/leaderboard`
+    : '/api/leaderboard';
 
   useEffect(() => {
     let isMounted = true;
 
-    fetchResource('leaderboard')
-      .then((items) => {
+    fetch(leaderboardApiUrl)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load leaderboard');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload)
+          ? payload
+          : payload?.items || payload?.results || [];
+
         if (isMounted) {
           setEntries(items);
         }

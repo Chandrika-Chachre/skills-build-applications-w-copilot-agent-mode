@@ -1,15 +1,27 @@
 import { useEffect, useState } from 'react';
-import { fetchResource } from '../utils/api.js';
 
 function Teams() {
   const [teams, setTeams] = useState([]);
   const [error, setError] = useState('');
+  const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
+  const teamsApiUrl = codespaceName
+    ? `https://${codespaceName}-8000.app.github.dev/api/teams`
+    : '/api/teams';
 
   useEffect(() => {
     let isMounted = true;
 
-    fetchResource('teams')
-      .then((items) => {
+    fetch(teamsApiUrl)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error('Failed to load teams');
+        }
+
+        const payload = await response.json();
+        const items = Array.isArray(payload)
+          ? payload
+          : payload?.items || payload?.results || [];
+
         if (isMounted) {
           setTeams(items);
         }
