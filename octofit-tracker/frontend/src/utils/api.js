@@ -1,16 +1,16 @@
-const getApiBaseUrl = () => {
+const getApiBaseUrl = (resourceName) => {
   const codespaceName = import.meta.env.VITE_CODESPACE_NAME;
 
   if (codespaceName) {
-    return `https://${codespaceName}-8000.app.github.dev/api`;
+    return `https://${codespaceName}-8000.app.github.dev/api/${resourceName}/`;
   }
 
-  return '/api';
+  return `/api/${resourceName}/`;
 };
 
 export const fetchResource = async (resourceName) => {
-  const baseUrl = getApiBaseUrl();
-  const response = await fetch(`${baseUrl}/${resourceName}/`);
+  const url = getApiBaseUrl(resourceName);
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`Failed to load ${resourceName}`);
